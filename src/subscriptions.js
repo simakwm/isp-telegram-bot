@@ -1,8 +1,19 @@
 const { findIndex, find, compact } = require('lodash')
 const Aigle = require('aigle')
+const LinvoDB = require('linvodb3')
+const LevelJS = require('leveldown')
+
+const { temporizePlugin } = require('./plugin-system')
+
+LinvoDB.defaults.store = { db: LevelJS }
+LinvoDB.dbPath = `${process.cwd()}/db`
+
+const IrisDb = new LinvoDB('iris', {})
+
+let userChat = []
 
 // Assina todos os usuários aos plugins
-async function resubscribeAll () {
+async function resubscribeAll ({ bot, plugins }) {
   try {
     IrisDb.find({}, async (error, docs) => {
       if (error) {
@@ -10,18 +21,18 @@ async function resubscribeAll () {
       }
       await Aigle.resolve(docs).each(async (item) => {
         const msg = { chat: { id: item.chatId, username: item.username } }
-        await subscribeAll(msg)
+        await subscribeAll({ bot, plugins, msg })
       }).then(() => {
         return Promise.resolve()
       })
-    })
+    })3
   } catch (error) {
     return Promise.reject(error)
   }
 }
 
 // Assina um usuário em todos os plugins
-async function subscribeAll (msg) {
+async function subscribeAll ({ bot, plugins, msg }) {
   try {
     console.log(`Assinando @${msg.chat.username} em todos os plugins...`)
     let botReply = ':bell: Você receberá notificações do(s) plugin(s): '
@@ -30,7 +41,7 @@ async function subscribeAll (msg) {
       userChat.push({ chatId: msg.chat.id, username: msg.chat.username })
       await Aigle.resolve(plugins).each(async (plugin) => {
         if (plugin.repeats) {
-          const timer = setInterval(() => { temporizePlugin(plugin, msg) }, plugin.interval)
+          const timer = setInterval(() => { temporizePlugin({ plugin, msg }) }, plugin.interval)
           const userIndex = findIndex(userChat, ['username', msg.chat.username])
           userChat[userIndex].timer = timer
           botReply += `\n:zap: ${plugin.name} - ${plugin.help}`
@@ -80,7 +91,7 @@ async function subscribeAll (msg) {
 }
 
 // Cancela assinatura de um usuário para todos os plugins
-async function unsubscribeAll (msg) {
+async function unsubscribeAll ({ bot, msg }) {
   try {
     const userIndex = findIndex(userChat, ['username', msg.chat.username])
     if (userChat[userIndex]) {
@@ -105,3 +116,5 @@ async function unsubscribeAll (msg) {
     return Promise.reject(error)
   }
 }
+
+module.exports = { unsubscribeAll, subscribeAll, resubscribeAll }

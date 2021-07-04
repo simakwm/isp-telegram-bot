@@ -5,19 +5,22 @@ TODO:
 * plugin.action should be async
 */
 
+require('dotenv').config()
 const TelegramBot = require('tgfancy') // wrapper para node-telegram-bot-api
-const LinvoDB = require('linvodb3')
-const LevelJS = require('leveldown')
 
 const pluginPing = require('../pluginPING')
 const pluginPRTG = require('../pluginPRTG')
-const pluginGLPI = require('../pluginGLPI')
+// const pluginGLPI = require('../pluginGLPI')
 
-LinvoDB.defaults.store = { db: LevelJS }
-LinvoDB.dbPath = `${process.cwd()}/db`
-const IrisDb = new LinvoDB('iris', {})
+const { subscribeAll, unsubscribeAll, resubscribeAll } = require('./subscriptions')
+const { registerPlugin, showPlugins } = require('./plugin-system')
+const { default: Aigle } = require('aigle')
 
-const ERRO = 'Agora fudeu tudo \u{1F632}'
+// Telegram bot token
+const { TOKEN } = process.env
+
+const knownPlugins = [pluginPing, pluginPRTG]
+
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(TOKEN, {
   polling: true,
@@ -25,8 +28,6 @@ const bot = new TelegramBot(TOKEN, {
     emojification: true // habilita emojificação automática de texto
   }
 })
-let userChat = []
-const plugins = []
 
 bot.onText(/\/echo (.+)/, (msg, match) => {
   const chatId = msg.chat.id
@@ -73,12 +74,15 @@ bot.onText(/\/[s]il[êe]ncio/, unsubscribeAll)
 bot.onText(/^[Ss]il$/, unsubscribeAll)
 bot.onText(/\/plugins/, showPlugins)
 
+
+
 async function main () {
   console.log('Inciando bot...')
-  await registerPlugin(pluginPing)
-  await registerPlugin(pluginPRTG)
-  await registerPlugin(pluginGLPI)
-  await resubscribeAll() // Renova assinatura dos usuários para todos os plugins
+  Aigle.resolve(knownPlugins).each(async (plugin) => {
+    await registerPlugin({ plugin })
+  }).then(async () => {
+    await resubscribeAll({ bot, plugins }) // Renova assinatura dos usuários para todos os plugins
+  })
 }
 
 main().then(() => {

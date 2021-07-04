@@ -1,5 +1,9 @@
+const Aigle = require('aigle')
 
-async function registraRegex (plugin) {
+const ERRO = 'Agora fudeu tudo \u{1F632}'
+const plugins = []
+
+async function registraRegex ({ bot, plugin }) {
   try {
     await Aigle.resolve(plugin.regex).each(async (regex) => {
       bot.onText(regex.regex, async (msg, match) => {
@@ -24,12 +28,12 @@ async function registraRegex (plugin) {
 }
 
 // Registra o regex e a ação do plugin
-async function registerPlugin (plugin) {
+async function registerPlugin ({ bot, plugin }) {
   try {
     if (!plugin.name || !plugin.regex || !plugin.action) {
       throw new Error(`Something is wrong with this plugin: ${plugin}`)
     }
-    const success = registraRegex(plugin)
+    const success = registraRegex({ bot, plugin })
     if (!success) {
       return Promise.resolve(false)
     }
@@ -42,7 +46,7 @@ async function registerPlugin (plugin) {
 }
 
 // Cria timer para ações que repetem
-async function temporizePlugin (plugin, msg) {
+async function temporizePlugin ({ bot, plugin, msg }) {
   try {
     if (msg.chat.id) {
       // console.log(`${agora()} Ação temporizada de ${plugin.name} para @${msg.chat.username}`);
@@ -67,8 +71,7 @@ async function temporizePlugin (plugin, msg) {
   }
 }
 
-
-async function showPlugins (msg) {
+async function showPlugins ({ bot, msg }) {
   try {
     let botReply = 'Plugins registrados:\n'
     await Aigle.resolve(plugins).eachSeries(async (item) => {
@@ -81,3 +84,5 @@ async function showPlugins (msg) {
     return Promise.reject(error)
   }
 }
+
+module.exports = { showPlugins, registerPlugin, temporizePlugin }
