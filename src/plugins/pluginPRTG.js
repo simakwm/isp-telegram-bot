@@ -1,27 +1,19 @@
 const request = require('request')
 const async = require('async')
 const _ = require('lodash')
-// const emoji = require('node-emoji'); tgfancy irá manusear os emoji
 const Prune = require('underscore.string').prune
-// const moment = require('moment');
 const config = require('./pluginConfig.json').PRTG
-// const agora = require('./lib').agora;
 
 const USERNAME = config.httpOpts.username
 const PASSHASH = config.httpOpts.passhash
 const PRTG_URL = `${config.httpOpts.baseUrl}${config.httpOpts.apiPath}&username=${USERNAME}&passhash=${PASSHASH}`
 
-// "ignoreList": [2543]
-
 function prtgDowned (target, actionId, callback) {
   const ignoreList = config.ignoreList
-  // const mostreStr = `Use o comando /mostre para exibir os dispositivos
-  // que contém estes sensores.`;
   request.get(PRTG_URL, (error, response, body) => {
     if (error) {
       return callback(error)
     }
-    // Se o corpo vier vazio, retorna um erro
     if (_.isEmpty(body)) {
       return callback('Corpo do resultado da requisição vazio!')
     }
@@ -82,11 +74,9 @@ function prtgDowned (target, actionId, callback) {
 
 module.exports = {
   name: 'PRTG',
-  // help: 'comandos: /prtg /quantos',
   help: 'comandos: /prtg, /quantos',
   regex: [
     { actionId: 1, regex: /[Pp]rtg$/ },
-    // { actionId: 1, regex: /\/[Mm]ostre$/ },
     { actionId: 2, regex: /\/[Qq]uantos$/ }
   ],
   action: prtgDowned,

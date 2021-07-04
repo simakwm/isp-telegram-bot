@@ -9,7 +9,6 @@ const TelegramBot = require('tgfancy') // wrapper para node-telegram-bot-api
 
 const pluginPing = require('../pluginPING')
 const pluginPRTG = require('../pluginPRTG')
-// const pluginGLPI = require('../pluginGLPI')
 
 const { subscribeAll, unsubscribeAll, resubscribeAll } = require('./subscriptions')
 const { registerPlugin, showPlugins } = require('./plugin-system')
