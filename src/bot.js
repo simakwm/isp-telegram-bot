@@ -1,6 +1,5 @@
 /*
 TODO:
-* Automatizar carregamento de plugins
 * juntar comandos globais em uma função
 * plugin.action should be async
 */
@@ -52,7 +51,7 @@ bot.onText(/^\/doomsday$/, (msg) => {
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id
   console.log(chatId)
-  const botReply = `Olá, eu sou o Telegram Bot da StartNet :v:
+  const botReply = `Olá, sou seu Telegram bot :v:
 Estes são os comandos globais:
 :bell: /incomode - Eu irei lhe enviar notificações de todos os plugins.
 :no_bell: /silencio - Irei parar de enviar mensagens automáticas.
